@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
 
 public class HitByBall : MonoBehaviour
 {
@@ -10,18 +11,28 @@ public class HitByBall : MonoBehaviour
 	public GameObject playButton;
 	public int numberOfTargets;
 	public Text collectedText, timeText, bestTimeText;
+	public GameObject congratsPanel;
+	public Text wellDoneText;
 	float timeNow;
 	float bestTime;
 	bool done;
+	TextReader textReader;
+	TextWriter textWriter;
     // Start is called before the first frame update
     void Start()
     {
+		textReader = new StreamReader("GameData.txt");
+		string input = textReader.ReadLine();
+		string[] parts = input.Split(',');
+		bestTime = (float)double.Parse(parts[1]);
+		textReader.Close();
+		bestTimeText.text = "Best time " + bestTime;
 		playButton.SetActive(false);
         targets = new List<GameObject>();
 		timeNow = 0;
 		done = false;
 		//dummy best time
-		bestTime = 10000;
+		
 		for(int i = 0; i<numberOfTargets; i++)
 		{
 			GameObject target = GameObject.Instantiate(prototypeObject);
@@ -43,7 +54,9 @@ public class HitByBall : MonoBehaviour
 	}
 	
 	public void OnClickPlayButton()
-	{		
+	{	
+		if(congratsPanel.activeSelf)
+			congratsPanel.SetActive(false);
 		for(int i=0; i < targets.Count; i++)
 		{			
 			Destroy(targets[i]);
@@ -76,8 +89,7 @@ public class HitByBall : MonoBehaviour
 			{
 				if(g.transform.position.y >= 10f)
 				{
-					count++;
-				
+					count++;				
 				}
 			}
 			if(count > 0)
@@ -88,8 +100,14 @@ public class HitByBall : MonoBehaviour
 					if(timeNow < bestTime)
 					{
 						bestTime = timeNow;
-						bestTimeText.text = "Best Time: " + t + "." + tTenths;
-						collectedText.text + = "\nYou have a new best time!!";
+						string bestTimeAsText = t + "." + tTenths;
+						bestTimeText.text = "Best Time: " + bestTimeAsText;				
+						congratsPanel.SetActive(true);
+						//collectedText.text += "\nYou have a new best time!!";
+						wellDoneText.text = "Congratulations you have a new best time of " + bestTimeAsText;
+					textWriter = new StreamWriter("GameData.txt");
+					textWriter.WriteLine("Best time, " + bestTimeAsText);
+					textWriter.Close();
 					}
 					playButton.SetActive(true);
 					done = true;
@@ -98,4 +116,5 @@ public class HitByBall : MonoBehaviour
 			}
 		}
     }
+	
 }
